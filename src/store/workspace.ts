@@ -32,7 +32,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   updateTableName: (oldName, newName) =>
     set((state) => ({
       tables: state.tables.map((table) =>
-        table.name === oldName ? { ...table, name: newName } : table
+        table.name === oldName
+          ? { ...table, id: newName, name: newName }
+          : table
       ),
     })),
   setSelectedTableId: (selectedTableId) => set({ selectedTableId }),

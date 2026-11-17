@@ -2,7 +2,6 @@ import { memo, useEffect, useRef, useState } from "react";
 import { KeyRound, Table2, Link } from "lucide-react";
 import { Handle, Position, useEdges, useReactFlow, type Node, type NodeProps } from "@xyflow/react";
 import type { TableDefinition } from "@/types/database";
-import { handleTableNameChange } from "../utils/handleTableNameChange";
 import { useEditableName } from "../hooks/useEditableName";
 
 export type TableNodeData = TableDefinition & { selected?: boolean };
@@ -10,7 +9,7 @@ export type TableFlowNode = Node<TableNodeData, "table">;
 
 function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
   
-  const { editing, setEditing, name, setName, inputRef, save, cancel } = useEditableName(id, data.name);
+  const { name, setName, inputRef, save, cancel } = useEditableName(data.name);
   const [editingNode, setEditingNode] = useState(false);
 
   const edges = useEdges();
@@ -30,10 +29,17 @@ function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
               value={name}
               autoFocus
               onChange={(e) => setName(e.target.value)}
-              onBlur={save}
+              onBlur={() => {
+                save().finally(() => setEditingNode(false));
+              }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") save();
-                if (e.key === "Escape") cancel();
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                }
+                if (e.key === "Escape") {
+                  cancel();
+                  setEditingNode(false);
+                }
               }}
             />
           ) : (
