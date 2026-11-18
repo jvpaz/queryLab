@@ -20,7 +20,7 @@ export function useTableUtils({tables, setTables, setNodes, notify, rowCount}: T
           rowCount: 0,
           columns: [
             { name: "id", type: "integer", primaryKey: true },
-            { name: "nome", type: "text" },
+            { name: "nome", type: "text", nullable: true, primaryKey: false },
           ],
         };
         executeBatch(

@@ -1,9 +1,7 @@
 import { executeBatch } from "@/lib/db/engine";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { ReactFlowInstance } from "@xyflow/react";
-
-const quoteIdentifier = (identifier: string) =>
-  `"${identifier.replaceAll('"', '""')}"`;
+import { handleQuote } from "../utils/handleQuote";
 
 export async function handleTableNameChange(
   rf: ReactFlowInstance,
@@ -11,7 +9,7 @@ export async function handleTableNameChange(
   newName: string,
 ) {
   await executeBatch(
-    `ALTER TABLE ${quoteIdentifier(oldName)} RENAME TO ${quoteIdentifier(newName)};`,
+    `ALTER TABLE ${handleQuote(oldName)} RENAME TO ${handleQuote(newName)};`,
   );
 
   rf.setNodes((nodes) =>

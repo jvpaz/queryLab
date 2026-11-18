@@ -1,6 +1,7 @@
 import { getDatabase } from "@/lib/db/engine";
 import { useWorkspaceStore } from "@/store/workspace";
 import { Connection } from "@xyflow/react";
+import { handleQuote } from "./handleQuote";
 
 const COLUMN_REGEX = /^[^.]+\.(.+)-(?:left|right)$/;
 
@@ -26,17 +27,28 @@ export async function handleEdgeConnection(params: Connection): Promise<boolean>
 
   console.log(params);
 
+  //TODO - Gambiarra, ver uma forma de melhorar isso depois.
+
   const db = await getDatabase();
-    const quote = (identifier: string) => `"${identifier.replaceAll('"', '""')}"`;
-  try {
+  const alterTable = async () =>
+  {
+    try {
       await db.exec(
-        `ALTER TABLE ${quote(source)} ADD FOREIGN KEY (${quote(sourceColumn)}) REFERENCES ${quote(target)} (${quote(targetColumn)});`,
+        `ALTER TABLE ${handleQuote(source)} ADD FOREIGN KEY (${handleQuote(sourceColumn)}) REFERENCES ${handleQuote(target)} (${handleQuote(targetColumn)});`,
       )
       return true;
     }
   catch (error) {
-    useWorkspaceStore.getState().setQueryError("Erro ao criar a chave estrangeira, verifique se a coluna de origem e destino possuem o mesmo tipo de dado e não são nulas.");
-    return false;
+    await db.exec(`ALTER TABLE ${handleQuote(target)} ADD FOREIGN KEY (${handleQuote(targetColumn)}) REFERENCES ${handleQuote(source)} (${handleQuote(sourceColumn)});`);
+    return true;
   }
-   
+  }
+  
+  try {
+  return await alterTable();
+} catch (erro) {
+  useWorkspaceStore.getState().setQueryError("Erro ao criar a chave estrangeira, verifique se a coluna de origem e destino possuem o mesmo tipo de dado e não são nulas.");
+  return false;
+}
+
 }

@@ -4,9 +4,7 @@ import { executeBatch } from "@/lib/db/engine";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { ColumnDefinition } from "@/types/database";
 import type { TableFlowNode } from "../components/TableNode";
-
-const quoteIdentifier = (identifier: string) =>
-  `"${identifier.replaceAll('"', '""')}"`;
+import { handleQuote } from "../utils/handleQuote";
 
 export function useAddColumn(tableName: string, columns: ColumnDefinition[]) {
   const { updateNodeData } = useReactFlow<TableFlowNode>();
@@ -26,7 +24,7 @@ export function useAddColumn(tableName: string, columns: ColumnDefinition[]) {
       }
 
       await executeBatch(
-        `ALTER TABLE ${quoteIdentifier(tableName)} ADD COLUMN ${quoteIdentifier(columnName)} TEXT;`,
+        `ALTER TABLE ${handleQuote(tableName)} ADD COLUMN ${handleQuote(columnName)} TEXT;`,
       );
 
       const updatedColumns = [...columns, { name: columnName, type: "text", nullable: true }];

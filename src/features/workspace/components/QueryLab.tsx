@@ -131,7 +131,7 @@ export function QueryLab() {
         );
       }
     }
-    void initialize();
+    initialize();
     return () => {
       active = false;
       if (noticeTimer.current) clearTimeout(noticeTimer.current);
@@ -316,7 +316,7 @@ export function QueryLab() {
               onKeyDown={(event) => {
                 if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
                   event.preventDefault();
-                  void runQuery();
+                  runQuery();
                 }
               }}
               aria-label="Editor de consulta SQL"

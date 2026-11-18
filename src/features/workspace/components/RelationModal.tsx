@@ -6,7 +6,7 @@ export default function RelationModal({ relationModalPosition, relationType, sav
     return (
       <>
     <div
-          className="relation-modal"
+          className="relation-modal nodrag nopan"
           role="dialog"
           aria-modal="true"
           aria-labelledby="relation-modal-title"

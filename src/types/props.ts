@@ -1,4 +1,5 @@
-import { TableDefinition } from "./database";
+import { ColumnAction } from "@/features/workspace/hooks/useColumnActions";
+import { ColumnDefinition, TableDefinition } from "./database";
 
 export type RelationModalProps = {
   relationModalPosition: { x: number; y: number };
@@ -13,3 +14,10 @@ export type TableUtilsProps = {
     notify: (message: string) => void;
     rowCount?: number;
 }
+
+export type ColumnEditorProps = {
+  column: ColumnDefinition;
+  busy: boolean;
+  onAction: (action: ColumnAction, nextName?: string) => void;
+  onClose: () => void;
+};

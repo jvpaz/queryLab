@@ -1,9 +1,11 @@
 import { memo, useState } from "react";
-import { KeyRound, Table2, Link, Plus, CircleMinus, Asterisk } from "lucide-react";
+import { KeyRound, Table2, Link, Plus, Asterisk } from "lucide-react";
 import { Handle, Position, useEdges, type Node, type NodeProps } from "@xyflow/react";
 import type { TableDefinition } from "@/types/database";
 import { useEditableName } from "../hooks/useEditableName";
 import { useAddColumn } from "../hooks/useAddColumn";
+import { useColumnActions } from "../hooks/useColumnActions";
+import ColumnEditor from "./ColumnEditor";
 
 export type TableFlowNode = Node<TableDefinition, "table">;
 
@@ -12,6 +14,8 @@ function TableNode({ data, selected}: NodeProps<TableFlowNode>) {
   const { name, setName, inputRef, save, cancel } = useEditableName(data.name);
   const [editingNode, setEditingNode] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+  const { busy, mutateColumn } = useColumnActions(data);
   const addColumn = useAddColumn(data.name, data.columns);
 
   const edges = useEdges();
@@ -60,10 +64,8 @@ function TableNode({ data, selected}: NodeProps<TableFlowNode>) {
     column.foreignKey || edges.some((edge) => edge.sourceHandle === handleIdRight);
 
         return (
-
-        
-
-        <div className="column" key={column.name}>
+        <div key={column.name} className="column-row-wrap">
+        <div className={`column${selectedColumn === column.name ? " is-selected" : ""}`} onClick={() => setSelectedColumn(column.name)}>
           <Handle
         type="target"
         position={Position.Left}
@@ -101,7 +103,17 @@ function TableNode({ data, selected}: NodeProps<TableFlowNode>) {
         id={data.name + "." + column.name + "-right"}
       />
         </div>
-        
+        {selectedColumn === column.name && 
+        <ColumnEditor
+          column={column}
+          busy={busy}
+          onAction={(action, nextName) => {
+            mutateColumn(column.name, action, nextName);
+            if (action === "delete" || action === "rename") setSelectedColumn(null);
+          }}
+          onClose={() => setSelectedColumn(null)}
+        />}
+        </div>
       )}  )}
       <div className="table-footer">{data.columns.length} colunas
 
@@ -113,7 +125,7 @@ function TableNode({ data, selected}: NodeProps<TableFlowNode>) {
         aria-label={`Adicionar coluna à tabela ${data.name}`}
         title="Adicionar coluna"
         onMouseDown={(event) => event.stopPropagation()}
-        onClick={() => void addColumn()}
+        onClick={() => addColumn()}
         tabIndex={isHovered ? 0 : -1}
       >
         <Plus size={15} />
