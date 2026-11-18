@@ -1,14 +1,8 @@
 import { exportDatabase } from "@/lib/db/engine";
 import { saveWorkspace } from "@/lib/storage/workspaces";
-import { TableDefinition } from "@/types/database";
-import { sql } from "@electric-sql/pglite/template";
+import { WorkspaceActionsParams } from "@/types/params";
 import { useCallback } from "react";
 
-type WorkspaceActionsParams = {
-  notify: (message: string) => void;
-  sql: string;
-  tables: TableDefinition[];
-};
 
 export function useWorkspaceActions({notify, sql, tables}: WorkspaceActionsParams) {
 

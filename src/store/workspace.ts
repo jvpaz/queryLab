@@ -15,6 +15,7 @@ type WorkspaceState = {
   setTables: (tables: TableDefinition[]) => void;
   setSelectedTableId: (id: string | null) => void;
   updateTableName: (oldName: string, newName: string) => void;
+  updateTableColumns: (tableName: string, columns: TableDefinition["columns"]) => void;
   runStarted: () => void;
   setResult: (result: QueryResult) => void;
   setQueryError: (error: string | null) => void;
@@ -35,6 +36,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
         table.name === oldName
           ? { ...table, id: newName, name: newName }
           : table
+      ),
+    })),
+  updateTableColumns: (tableName, columns) =>
+    set((state) => ({
+      tables: state.tables.map((table) =>
+        table.name === tableName ? { ...table, columns } : table,
       ),
     })),
   setSelectedTableId: (selectedTableId) => set({ selectedTableId }),

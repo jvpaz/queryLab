@@ -1,16 +1,9 @@
 import { executeBatch } from "@/lib/db/engine";
 import { useCallback } from "react";
 import { TableFlowNode } from "../components/TableNode";
-import { TableDefinition } from "@/types/database";
 import { generateRows } from "@/lib/data/generate";
+import { TableUtilsProps } from "@/types/props";
 
-type TableUtilsProps = {
-    tables:  TableDefinition[];
-    setTables: (tables: TableDefinition[]) => void;
-    setNodes: (nodes: any) => void;
-    notify: (message: string) => void;
-    rowCount?: number;
-}
 
 export function useTableUtils({tables, setTables, setNodes, notify, rowCount}: TableUtilsProps)
 {

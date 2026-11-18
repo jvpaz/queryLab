@@ -1,6 +1,5 @@
 import { useReactFlow } from "@xyflow/react";
 import { useState, useRef } from "react";
-import { TableFlowNode } from "../components/TableNode";
 import { handleTableNameChange } from "../utils/handleTableNameChange";
 
 export function useEditableName(currentName: string) {

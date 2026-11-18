@@ -1,16 +1,18 @@
-import { memo, useEffect, useRef, useState } from "react";
-import { KeyRound, Table2, Link } from "lucide-react";
-import { Handle, Position, useEdges, useReactFlow, type Node, type NodeProps } from "@xyflow/react";
+import { memo, useState } from "react";
+import { KeyRound, Table2, Link, Plus, CircleMinus, Asterisk } from "lucide-react";
+import { Handle, Position, useEdges, type Node, type NodeProps } from "@xyflow/react";
 import type { TableDefinition } from "@/types/database";
 import { useEditableName } from "../hooks/useEditableName";
+import { useAddColumn } from "../hooks/useAddColumn";
 
-export type TableNodeData = TableDefinition & { selected?: boolean };
-export type TableFlowNode = Node<TableNodeData, "table">;
+export type TableFlowNode = Node<TableDefinition, "table">;
 
-function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
+function TableNode({ data, selected}: NodeProps<TableFlowNode>) {
   
   const { name, setName, inputRef, save, cancel } = useEditableName(data.name);
   const [editingNode, setEditingNode] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const addColumn = useAddColumn(data.name, data.columns);
 
   const edges = useEdges();
 
@@ -18,6 +20,8 @@ function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
     <div
       className="table-node"
       style={selected ? { borderColor: "var(--accent)" } : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="table-heading" onDoubleClick={() => setEditingNode(true)}>
         <span className="table-name">
@@ -73,6 +77,12 @@ function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
                 <span className="column-key">
               <KeyRound size={10} /> 
                 </span>
+              : ""}
+
+              {!column.primaryKey && !column.nullable ?
+                <span className="column-nullable">
+                  <Asterisk size={10} />
+                </span>
               : ""} 
                 
               {isForeignKey ? 
@@ -97,12 +107,17 @@ function TableNode({ id, data, selected}: NodeProps<TableFlowNode>) {
 
         <span className="table-count">{data.rowCount ?? 0} linhas</span>
       </div>
-              
-        {/* <Handle
-          type="source"
-          position={Position.Right}
-          style={{ background: "#78a9ff", border: 0, width: 7, height: 7 }}
-        /> */}
+      <button
+        type="button"
+        className={`add-column-button nodrag nopan${isHovered ? " is-visible" : ""}`}
+        aria-label={`Adicionar coluna à tabela ${data.name}`}
+        title="Adicionar coluna"
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={() => void addColumn()}
+        tabIndex={isHovered ? 0 : -1}
+      >
+        <Plus size={15} />
+      </button>
     </div>
   );
 }

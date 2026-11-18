@@ -1,17 +1,9 @@
 import { executeSql, getSchema, getForeignKeys } from "@/lib/db/engine";
 import { useWorkspaceStore } from "@/store/workspace";
 import { ForeignKeyDefinition } from "@/types/database";
-import { sql } from "@electric-sql/pglite/template";
 import { useCallback } from "react";
-import { TableFlowNode } from "../components/TableNode";
-import { Edge } from "@xyflow/react";
+import { QueryHookParams } from "@/types/params";
 
-type QueryHookParams = {
-    nodes: TableFlowNode[];
-    setNodes: (nodes: TableFlowNode[]) => void;
-    edges: Edge[];
-    setEdges: (edges: Edge[]) => void;
-}
 
 export function useQueryHooks({nodes, setNodes, edges, setEdges}: QueryHookParams) {
     

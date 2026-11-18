@@ -1,15 +1,7 @@
 import { Connection, addEdge, Edge } from "@xyflow/react";
-import { useCallback, Dispatch } from "react";
+import { useCallback } from "react";
 import { handleEdgeConnection } from "../utils/handleEdgeConnection";
-
-type CanvasActionsParams = {
-  setEdges: (edges: any) => void;
-  setEdgeForRelationType: (edge: Edge | null) => void;
-  edgeForRelationType: Edge | null;
-  relationType: string;
-  setRelationType: (type: string) => void;
-  setRelationModalPosition: (position: { x: number; y: number }) => void;
-}
+import { CanvasActionsParams } from "@/types/params";
 
 export function useCanvasActions({setEdges, setEdgeForRelationType, edgeForRelationType, relationType, setRelationType, setRelationModalPosition}: CanvasActionsParams)
 {
