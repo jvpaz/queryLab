@@ -3,6 +3,7 @@ import type { ForeignKeyDefinition, TableDefinition } from "@/types/database";
 import { pgDump } from "@electric-sql/pglite-tools/pg_dump";
 
 let databasePromise: Promise<PGlite> | undefined;
+const quoteIdentifier = (identifier: string) => `"${identifier.replaceAll('"', '""')}"`;
 
 export async function getDatabase(): Promise<PGlite> {
   if (!databasePromise) {
@@ -115,7 +116,60 @@ export async function getForeignKeys(tableName: string): Promise<ForeignKeyDefin
     table: row.target_table,
     from: row.source_column,
     to: `${tableName}.${row.source_column}-right`,
+    targetHandle: `${row.target_table}.${row.target_column}-left`,
   }));
+}
+
+export async function dropForeignKeyForRelation(relation: {
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+}) {
+  const db = await getDatabase();
+  const columnFromHandle = (handle: string | null | undefined, table: string) => {
+    if (!handle) return null;
+    const prefix = `${table}.`;
+    if (!handle.startsWith(prefix)) return null;
+    return handle.slice(prefix.length).replace(/-(?:left|right)$/, "");
+  };
+  const sourceColumn = columnFromHandle(relation.sourceHandle, relation.source);
+  const targetColumn = columnFromHandle(relation.targetHandle, relation.target);
+  if (!sourceColumn || !targetColumn) return;
+
+  const constraints = await db.query<{
+    constraint_name: string;
+    source_table: string;
+    source_column: string;
+    target_table: string;
+    target_column: string;
+  }>(
+    `SELECT con.conname AS constraint_name, source.relname AS source_table,
+       source_col.attname AS source_column, target.relname AS target_table,
+       target_col.attname AS target_column
+     FROM pg_constraint con
+     JOIN pg_class source ON source.oid = con.conrelid
+     JOIN pg_namespace ns ON ns.oid = source.relnamespace
+     JOIN pg_class target ON target.oid = con.confrelid
+     JOIN LATERAL unnest(con.conkey) WITH ORDINALITY AS source_key(attnum, ord) ON true
+     JOIN LATERAL unnest(con.confkey) WITH ORDINALITY AS target_key(attnum, ord) ON target_key.ord = source_key.ord
+     JOIN pg_attribute source_col ON source_col.attrelid = source.oid AND source_col.attnum = source_key.attnum
+     JOIN pg_attribute target_col ON target_col.attrelid = target.oid AND target_col.attnum = target_key.attnum
+     WHERE con.contype = 'f' AND ns.nspname = 'public'
+       AND ((source.relname = $1 AND target.relname = $2)
+         OR (source.relname = $2 AND target.relname = $1));`,
+    [relation.source, relation.target],
+  );
+
+  const matching = constraints.rows.filter((constraint) =>
+    (constraint.source_table === relation.source && constraint.target_table === relation.target &&
+      constraint.source_column === sourceColumn && constraint.target_column === targetColumn) ||
+    (constraint.source_table === relation.target && constraint.target_table === relation.source &&
+      constraint.source_column === targetColumn && constraint.target_column === sourceColumn),
+  );
+  for (const constraint of matching) {
+    await db.exec(`ALTER TABLE ${quoteIdentifier(constraint.source_table)} DROP CONSTRAINT ${quoteIdentifier(constraint.constraint_name)};`);
+  }
 }
 
 export async function isForeignKey(tableName: string, columnName: string): Promise<boolean> {

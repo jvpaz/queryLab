@@ -25,6 +25,7 @@ export type ForeignKeyDefinition = {
   table: string;
   from: string;
   to: string;
+  targetHandle: string;
 };
 
 export type WorkspaceSnapshot = {

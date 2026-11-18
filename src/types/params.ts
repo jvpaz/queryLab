@@ -1,9 +1,12 @@
 import { TableFlowNode } from "@/features/workspace/components/TableNode";
-import { Edge } from "@xyflow/react";
+import { Edge, OnEdgesChange } from "@xyflow/react";
 import { TableDefinition } from "./database";
 
 export type CanvasActionsParams = {
   setEdges: (edges: any) => void;
+  edges: Edge[];
+  onEdgesChange: OnEdgesChange<Edge>;
+  setQueryError: (error: string | null) => void;
   setEdgeForRelationType: (edge: Edge | null) => void;
   edgeForRelationType: Edge | null;
   relationType: string;

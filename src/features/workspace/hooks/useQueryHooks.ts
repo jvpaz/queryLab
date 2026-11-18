@@ -65,6 +65,7 @@ export function useQueryHooks({nodes, setNodes, edges, setEdges}: QueryHookParam
             source: fk.tableOrigin,
             target: fk.table,
             sourceHandle: fk.to,
+          targetHandle: fk.targetHandle,
             type: "relation",
           })));
     

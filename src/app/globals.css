@@ -349,6 +349,25 @@ input {
   gap: 5px;
   color: var(--muted);
 }
+.column-editor-type {
+  width: 100%;
+  margin-top: 8px;
+}
+.column-editor-type .select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.column-editor-type .select option,
+.column-editor-type .select optgroup {
+  background: var(--surface);
+  color: var(--text);
+}
 .column-editor input {
   width: 100%;
   padding: 6px 7px;

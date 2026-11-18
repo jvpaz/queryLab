@@ -5,8 +5,13 @@ import { useWorkspaceStore } from "@/store/workspace";
 import type { TableDefinition } from "@/types/database";
 import { handleQuote } from "../utils/handleQuote";
 
-export type ColumnAction = "rename" | "delete" | "nullable" | "primary";
+export type ColumnAction = "rename" | "delete" | "nullable" | "primary" | "alter";
 
+const allowedColumnTypes = new Set([
+  "smallint", "integer", "bigint", "serial", "numeric", "real", "double precision",
+  "text", "varchar", "char", "date", "time", "timestamp", "timestamptz", "interval",
+  "boolean", "uuid", "json", "jsonb", "bytea",
+]);
 
 export function useColumnActions(table: TableDefinition) {
   const [busy, setBusy] = useState(false);
@@ -23,7 +28,8 @@ export function useColumnActions(table: TableDefinition) {
     if (updatedTable) updateNodeData(table.id, updatedTable);
   };
 
-  const mutateColumn = async (columnName: string, action: ColumnAction, nextName = "") => {
+    //Arrumar possível confusão com tipo value, que no momento pode ser tanto o novo nome da coluna quanto o novo tipo da coluna, dependendo do action.
+  const mutateColumn = async (columnName: string, action: ColumnAction, value = "") => {
     if (busy) return;
     const column = table.columns.find((item) => item.name === columnName);
     if (!column) return;
@@ -33,23 +39,32 @@ export function useColumnActions(table: TableDefinition) {
       const tableSql = handleQuote(table.name);
       const columnSql = handleQuote(column.name);
       if (action === "rename") {
-        const trimmedName = nextName.trim();
+        const trimmedName = value.trim();
         if (!trimmedName || trimmedName === column.name) return;
         await executeBatch(`ALTER TABLE ${tableSql} RENAME COLUMN ${columnSql} TO ${handleQuote(trimmedName)};`);
       } else if (action === "delete") {
         await executeBatch(`ALTER TABLE ${tableSql} DROP COLUMN ${columnSql};`);
       } else if (action === "nullable") {
         await executeBatch(`ALTER TABLE ${tableSql} ALTER COLUMN ${columnSql} ${column.nullable === false ? "DROP NOT NULL" : "SET NOT NULL"};`);
-      } else if (column.primaryKey) {
+      } else if (action === "alter") {
+        if (!allowedColumnTypes.has(value)) {
+          throw new Error("Tipo de coluna inválido.");
+        }
+        if (value !== column.type) {
+          await executeBatch(`ALTER TABLE ${tableSql} ALTER COLUMN ${columnSql} TYPE ${value} USING ${columnSql}::${value};`);
+        }
+      } else if (action === "primary") {
         const db = await getDatabase();
-        const constraints = await db.query<{ constraint_name: string }>(
-          "SELECT conname AS constraint_name FROM pg_constraint WHERE conrelid = to_regclass($1) AND contype = 'p'",
-          [table.name],
-        );
-        const constraint = constraints.rows[0]?.constraint_name;
-        if (constraint) await executeBatch(`ALTER TABLE ${tableSql} DROP CONSTRAINT ${handleQuote(constraint)};`);
-      } else {
-        await executeBatch(`ALTER TABLE ${tableSql} ADD PRIMARY KEY (${columnSql});`);
+        if (column.primaryKey) {
+          const constraints = await db.query<{ constraint_name: string }>(
+            "SELECT conname AS constraint_name FROM pg_constraint WHERE conrelid = to_regclass($1) AND contype = 'p'",
+            [table.name],
+          );
+          const constraint = constraints.rows[0]?.constraint_name;
+          if (constraint) await executeBatch(`ALTER TABLE ${tableSql} DROP CONSTRAINT ${handleQuote(constraint)};`);
+        } else {
+          await executeBatch(`ALTER TABLE ${tableSql} ADD PRIMARY KEY (${columnSql});`);
+        }
       }
 
       await refreshSchema();

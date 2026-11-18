@@ -92,9 +92,9 @@ export function QueryLab() {
   const nodeTypesMap = useMemo(() => nodeTypes, []);
   const { notify, notice, noticeTimer } = useNotice();
   const { runQuery } = useQueryHooks({ nodes, setNodes, edges, setEdges });
-  const {insertTable, deleteTables, generate} = useTableUtils({tables, setTables, setNodes, notify, rowCount});
+  const {insertTable, deleteTables} = useTableUtils({tables, setTables, setNodes, notify, rowCount});
   const { downloadDb, save } = useWorkspaceActions({ notify, sql, tables });
-  const { onConnect, onEdgeClick, saveRelationType } = useCanvasActions({ setEdges, setEdgeForRelationType, edgeForRelationType, relationType, setRelationType, setRelationModalPosition });
+  const { onConnect, onEdgeClick, handleEdgesChange, saveRelationType } = useCanvasActions({ edges, setEdges, onEdgesChange, setQueryError, setEdgeForRelationType, edgeForRelationType, relationType, setRelationType, setRelationModalPosition });
 
 
 //TODO - Mover funções e afins para um hook dedicado, para não poluir o componente principal.
@@ -234,7 +234,7 @@ export function QueryLab() {
               edges={edges}
               onNodesChange={onNodesChange}
               onNodesDelete={deleteTables}
-              onEdgesChange={onEdgesChange}
+              onEdgesChange={handleEdgesChange}
               onConnect={onConnect}
               onEdgeClick={onEdgeClick}
               nodeTypes={nodeTypesMap}

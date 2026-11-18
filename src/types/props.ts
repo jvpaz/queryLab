@@ -18,6 +18,6 @@ export type TableUtilsProps = {
 export type ColumnEditorProps = {
   column: ColumnDefinition;
   busy: boolean;
-  onAction: (action: ColumnAction, nextName?: string) => void;
+  onAction: (action: ColumnAction, value?: string) => void;
   onClose: () => void;
 };
